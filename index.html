@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Courier Delivery Service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input[type="number"] {
+            width: 150px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Create Delivery</h1>
+    <form id="deliveryForm">
+        <label>Customer Name:</label>
+        <input type="text" name="customer_name" value="John Doe" required>
+        <label>Customer Address (Street, City, State, PostalCode):</label>
+        <input type="text" name="customer_address" value="123 Main St, Bangalore, Karnataka, 560001" required>
+        <label>Delivery Name:</label>
+        <input type="text" name="delivery_name" value="Jane Smith" required>
+        <label>Delivery Address (Street, City, State, PostalCode):</label>
+        <input type="text" name="delivery_address" value="456 Park Ave, Mumbai, Maharashtra, 400001" required>
+        <label>Parcel Size:</label>
+        <input type="text" name="parcel_size" value="Medium" required>
+        <label>Parcel Weight (grams):</label>
+        <input type="number" name="parcel_weight_grams" value="500" min="1" required>
+        <button type="submit">Submit</button>
+    </form>
+    <pre id="response"></pre>
+
+    <script>
+        document.getElementById('deliveryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch('http://localhost:1407/api/delivery', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                document.getElementById('response').textContent = JSON.stringify(result, null, 2);
+                if (!response.ok) {
+                    document.getElementById('response').classList.add('error');
+                } else {
+                    document.getElementById('response').classList.remove('error');
+                }
+            } catch (error) {
+                document.getElementById('response').textContent = `Error: ${error.message}`;
+                document.getElementById('response').classList.add('error');
+            }
+        });
+    </script>
+</body>
+</html>

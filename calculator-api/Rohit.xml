@@ -1,0 +1,10 @@
+<students>
+    <student>
+        <name>Rohit</name>
+        <age>20</age>
+        <branch>Electronics and Telecommunication</branch>
+        <year>4</year>
+        <rollno>22B-ET-050</rollno>
+        <cgpa>9.35</cgpa>
+    </student>
+</students>
