@@ -1,5 +1,6 @@
 node_modules/
 *.log
 .venv
-.DS_Storecalculator-api/venv
-auth_service/.venv
+.DS_Store
+calculator-api/venv/
+auth_service/.venv/
