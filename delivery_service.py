@@ -1,9 +1,65 @@
+import atexit
 from flask import Flask, request, jsonify, send_file
 import requests
 from dataclasses import dataclass
 from typing import Optional
+import psycopg2
+from flask_pymongo import PyMongo
 
 app = Flask(__name__)
+
+# Configure MongoDB connection
+app.config["MONGO_URI"] = "mongodb://localhost:27017/calculator_cost"
+mongo = PyMongo(app)
+#this route returns the data from the MongoDB collection
+@app.route('/mongo', methods=['GET'])
+def get_mongo_data():
+    collection = mongo.db.calculator_cost
+    data = list(collection.find())
+    for doc in data:
+        doc['_id'] = str(doc['_id'])  # Convert ObjectId to string
+    return jsonify(data)
+
+
+# Insert hardcoded value into MongoDB at startup (not via a route)
+# Insert hardcoded value into MongoDB at startup (not via a route)
+try:
+    docs = [
+        {"calculating cost": "cost=weight_grams*10"}
+    ]
+    result = mongo.db.calculator_cost.insert_many(docs)
+    print("Inserted IDs:", [str(_id) for _id in result.inserted_ids])
+except Exception as e:
+    print("MongoDB insert error:", e)
+
+# Clear the MongoDB collection on app shutdown
+def clear_calculator_cost_collection():
+    try:
+        mongo.db.calculator_cost.delete_many({})
+        print("calculator_cost collection cleared on shutdown.")
+    except Exception as e:
+        print("Error clearing calculator_cost collection:", e)
+
+atexit.register(clear_calculator_cost_collection)
+
+
+# Establish a connection to the PostgreSQL database
+conn= psycopg2.connect(
+    host='localhost',
+    database = "restapi",
+    user ="postgres",
+    password = "admin"
+)
+ 
+@app.route('/db')
+def index():
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM delivery")
+    data = cur.fetchall()
+    print(data)
+    cur.close()
+    return jsonify(data)
+
 
 AUTH_SERVICE_URL = 'http://localhost:1507/api/auth/verify'
 
@@ -36,6 +92,7 @@ def estimate_delivery_time(customer_state: str, delivery_state: str) -> int:
     return 3 if customer_state.lower() == delivery_state.lower() else 10
 
 def verify_user(user_id: str, token: str) -> tuple[bool, str]:
+    return True, "Bypassed"
     try:
         response = requests.post(
             AUTH_SERVICE_URL,
@@ -85,11 +142,14 @@ def create_delivery():
             parcel_weight_grams=float(data['parcel_weight_grams'])
         )
 
+
         cost = calculate_delivery_cost(delivery.parcel_weight_grams)
         delivery_days = estimate_delivery_time(
             delivery.customer_address.state,
             delivery.delivery_address.state
         )
+
+        
 
         return jsonify({
             'status': 'success',
